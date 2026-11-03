@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torque Wrench Verification & Calibration Calculator</title>
+    <style>
+        :root {
+            --primary-orange: #e65100;
+            --accent-orange: #ff9800;
+            --light-bg: #f8f9fa;
+            --border-color: #ccc;
+            --pass-color: #2e7d32;
+            --fail-color: #c62828;
+            --gs-border: #b7b7b7;
+            --gs-header-bg: #f3f3f3;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+
+        /* Nav Tabs */
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--primary-orange);
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px 18px;
+            cursor: pointer;
+            border: none;
+            background-color: #e0e0e0;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 4px;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-header {
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        input[type="text"], input[type="number"], select, input[type="date"], input[type="url"] {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+        }
+
+        /* Image Upload Box */
+        .image-upload-box {
+            border: 2px dashed var(--border-color);
+            padding: 8px;
+            text-align: center;
+            border-radius: 6px;
+            background-color: #fafafa;
+            position: relative;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: 6px;
+            margin: 4px auto 0 auto;
+            display: none;
+            object-fit: contain;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .delete-btn {
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .delete-btn:hover {
+            background-color: #d9363e;
+        }
+
+        /* Input Table Styling */
+        table.input-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        table.input-table th, table.input-table td {
+            border: 1px solid var(--border-color);
+            padding: 5px 6px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
+
+        table.input-table th {
+            background-color: #fff3e0;
+            color: #d84315;
+        }
+
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+
+        .status-pass { background-color: #e8f5e9; color: var(--pass-color); }
+        .status-fail { background-color: #ffebee; color: var(--fail-color); }
+
+        .btn-action {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-action:hover {
+            background-color: #bf360c;
+        }
+
+        /* ----------------------------------------------------------------
+           GOOGLE SHEETS STYLE A4 REPORT PAPER WRAPPER
+        ------------------------------------------------------------------ */
+        .report-paper {
+            width: 210mm;
+            min-height: 297mm;
+            height: 297mm;
+            background: white;
+            padding: 10mm 12mm;
+            margin: 0 auto 20px auto;
+            border: 1px solid #d0d0d0;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* LOGO ON LEFT, CENTERED TITLE CONTENT */
+        .gs-header-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2pt solid #000;
+            padding-bottom: 2mm;
+            margin-bottom: 3mm;
+            min-height: 16mm;
+        }
+
+        .gs-header-logo {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 40mm;
+            height: auto;
+            max-height: 12mm;
+            object-fit: contain;
+        }
+
+        .gs-header-titles {
+            text-align: center;
+            width: 100%;
+        }
+
+        .gs-header-titles h2 { 
+            margin: 0 0 1mm 0; 
+            font-size: 13pt; 
+            font-weight: bold;
+            color: #000;
+        }
+
+        .gs-header-titles h3 { 
+            margin: 0 0 1mm 0; 
+            font-size: 10pt; 
+            color: #333; 
+        }
+
+        .gs-header-docno {
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #444;
+            margin-top: 0.5mm;
+        }
+
+        /* Google Sheet Block Table */
+        table.gs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 3mm;
+        }
+
+        table.gs-table td, table.gs-table th {
+            border: 1pt solid var(--gs-border);
+            padding: 1.5mm 2mm;
+            font-size: 8.5pt;
+            vertical-align: middle;
+        }
+
+        table.gs-table th {
+            background-color: var(--gs-header-bg);
+            font-weight: bold;
+            color: #000;
+            text-align: center;
+        }
+
+        .gs-bg-head {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .report-link {
+            color: #1a0dab;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        /* Main Equipment Boxes inside Report */
+        .main-eq-img-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1pt solid var(--gs-border);
+            border-radius: 2pt;
+            padding: 2mm;
+            background-color: #fff;
+            height: 44mm;
+        }
+
+        .main-eq-img-box img {
+            max-width: 100%;
+            max-height: 36mm;
+            object-fit: contain;
+            border-radius: 2pt;
+            border: 1pt solid #ccc;
+            display: none;
+        }
+
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20mm;
+            margin-top: 4mm;
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        .sig-line {
+            border-top: 1pt dashed #333;
+            margin-top: 8mm;
+            padding-top: 1.5mm;
+        }
+
+        /* Reading Step Photos Layout for Page 2 */
+        .step-row-card {
+            border: 1pt solid var(--gs-border);
+            padding: 2mm 3mm;
+            border-radius: 2pt;
+            background-color: #fff;
+            margin-bottom: 2.5mm;
+        }
+
+        .step-card-header {
+            font-weight: bold;
+            font-size: 9pt;
+            border-bottom: 1.5pt solid #555;
+            padding-bottom: 1mm;
+            margin-bottom: 1.5mm;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .report-img-container-large {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4mm;
+            width: 100%;
+        }
+
+        .report-img-box-large {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 48mm;
+        }
+
+        .report-img-box-large img {
+            max-width: 100%;
+            max-height: 42mm;
+            object-fit: contain;
+            border-radius: 2pt;
+            margin: 0 auto;
+            display: none;
+            border: 1pt solid #ccc;
+        }
+
+        /* ----------------------------------------------------------------
+           STRICT EXACT A4 PRINT ENGINE RULES
+        ------------------------------------------------------------------ */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0mm;
+            }
+
+            html, body {
+                width: 210mm;
+                height: 100%;
+                background: white;
+                padding: 0;
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                width: 210mm;
+                max-width: 210mm;
+            }
+
+            .no-print, .nav-tabs {
+                display: none !important;
+            }
+
+            .tab-content {
+                display: block !important;
+            }
+
+            #tab-calculator, #tab-edit-corr, #tab-edit-ref {
+                display: none !important;
+            }
+
+            #tab-report {
+                display: block !important;
+            }
+
+            .report-paper {
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                padding: 10mm 12mm !important;
+                margin: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                page-break-before: always;
+                page-break-after: always;
+                page-break-inside: avoid;
+            }
+
+            .report-paper:first-child {
+                page-break-before: avoid;
+            }
+
+            .report-paper:last-child {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <!-- NAVIGATION TABS -->
+    <div class="nav-tabs no-print">
+        <button class="tab-button active" onclick="switchTab('tab-calculator', event)">Verification Entry</button>
+        <button class="tab-button" onclick="switchTab('tab-report', event)">Preview Verification Report</button>
+        <button class="tab-button" onclick="switchTab('tab-edit-corr', event)">Edit Master Calibration Points</button>
+        <button class="tab-button" onclick="switchTab('tab-edit-ref', event)">Edit Reference Standards & Links</button>
+    </div>
+
+    <!-- TAB 1: SIMPLIFIED VERIFICATION ENTRY FORM -->
+    <div id="tab-calculator" class="tab-content active">
+        <div class="no-print">
+            <h1>Torque Wrench Verification Calculator</h1>
+            <p>Simplified fast entry form. Master parameters, equipment details, document numbers, and procedure links can be edited in the <strong>Edit Reference Standards & Links</strong> tab.</p>
+
+            <div class="section-header">1. Tool & Verification Info</div>
+            <div class="grid-2">
+                <div>
+                    <div class="form-group">
+                        <label>Tested Tool ID (รหัสเครื่องมือ)</label>
+                        <input type="text" id="testedId" placeholder="MTE11-XX / TE-26000XXWH" oninput="calculateResults()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tested Tool Serial Number (หมายเลขเครื่อง)</label>
+                        <input type="text" id="testedSerial" placeholder="SN2600XXX" oninput="calculateResults()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tested Tool Manufacturer (ผู้ผลิตตัวทวนสอบ)</label>
+                        <input type="text" id="testedMfg" placeholder="BRAND" oninput="calculateResults()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tested Tool Model (รุ่นตัวทวนสอบ)</label>
+                        <input type="text" id="testedModel" placeholder="MODEL67" oninput="calculateResults()">
+                    </div>
+                </div>
+                <div>
+                    <div class="form-group">
+                        <label>Verification Date (วันที่ทวนสอบ)</label>
+                        <input type="date" id="verifyDate" onchange="calculateResults()">
+                    </div>
+                    <div class="form-group">
+                        <label>Tolerance Criteria (%)</label>
+                        <input type="number" id="criteria" value="4.0" step="0.1" oninput="calculateResults()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">2. Main Equipment Photos</div>
+            <div class="grid-2">
+                <div>
+                    <label>Master Tool Image (รูปตัวแม่)</label>
+                    <div class="image-upload-box">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgMasterMainPreview', 'btnMasterMainDelete')">
+                        <img id="imgMasterMainPreview" class="image-preview" alt="Master Tool Preview">
+                        <button type="button" id="btnMasterMainDelete" class="delete-btn" onclick="removeImage('imgMasterMainPreview', 'btnMasterMainDelete')">Delete Image</button>
+                    </div>
+                </div>
+                <div>
+                    <label>Tested Tool Image (รูปตัวที่ทวนสอบ)</label>
+                    <div class="image-upload-box">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgTestedMainPreview', 'btnTestedMainDelete')">
+                        <img id="imgTestedMainPreview" class="image-preview" alt="Tested Tool Preview">
+                        <button type="button" id="btnTestedMainDelete" class="delete-btn" onclick="removeImage('imgTestedMainPreview', 'btnTestedMainDelete')">Delete Image</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">3. Torque Setting Points & Verification Readings</div>
+            <div class="grid-4">
+                <div class="form-group">
+                    <label>Select Testing Preset</label>
+                    <select id="settingSelect" onchange="onPresetSelect()">
+                        <option value="">-- Select Preset --</option>
+                        <option value="14">14 N.m</option>
+                        <option value="18">18 N.m</option>
+                        <option value="42">42 N.m</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Goal Torque Setting (N.m)</label>
+                    <input type="number" id="goalValue" placeholder="e.g. 14, 18, 42" oninput="onGoalChange()" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Calculated Correction (N.m)</label>
+                    <input type="text" id="appliedCorrDisp" value="0.00" readonly style="background-color: #eee; font-weight: bold;">
+                </div>
+                <div class="form-group">
+                    <label>Overall Test Result</label>
+                    <div id="liveOverallStatus" class="status-badge" style="display: block; text-align: center; font-size: 1rem; padding: 4px;">-</div>
+                </div>
+            </div>
+
+            <table class="input-table">
+                <thead>
+                    <tr>
+                        <th>Test #</th>
+                        <th>Goal (N.m)</th>
+                        <th>Master Reading (N.m)</th>
+                        <th>Master Photo (รูปตัวแม่)</th>
+                        <th>Actual Reading (N.m)</th>
+                        <th>Actual Photo (รูปตัวทวนสอบ)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Run 1 -->
+                    <tr>
+                        <td><strong>1</strong></td>
+                        <td class="goal-disp">-</td>
+                        <td><input type="number" class="master-input" step="0.01" oninput="calculateResults()"></td>
+                        <td style="width: 170px;">
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgMasterRun1Preview', 'btnMasterRun1Delete')">
+                                <img id="imgMasterRun1Preview" class="image-preview" alt="Master 1 Preview">
+                                <button type="button" id="btnMasterRun1Delete" class="delete-btn" onclick="removeImage('imgMasterRun1Preview', 'btnMasterRun1Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><input type="number" class="actual-input" step="0.01" oninput="calculateResults()"></td>
+                        <td style="width: 170px;">
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgRun1Preview', 'btnRun1Delete')">
+                                <img id="imgRun1Preview" class="image-preview" alt="Run 1 Preview">
+                                <button type="button" id="btnRun1Delete" class="delete-btn" onclick="removeImage('imgRun1Preview', 'btnRun1Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><span id="liveStatusRun1" class="status-badge">-</span></td>
+                    </tr>
+                    <!-- Run 2 -->
+                    <tr>
+                        <td><strong>2</strong></td>
+                        <td class="goal-disp">-</td>
+                        <td><input type="number" class="master-input" step="0.01" oninput="calculateResults()"></td>
+                        <td>
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgMasterRun2Preview', 'btnMasterRun2Delete')">
+                                <img id="imgMasterRun2Preview" class="image-preview" alt="Master 2 Preview">
+                                <button type="button" id="btnMasterRun2Delete" class="delete-btn" onclick="removeImage('imgMasterRun2Preview', 'btnMasterRun2Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><input type="number" class="actual-input" step="0.01" oninput="calculateResults()"></td>
+                        <td>
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgRun2Preview', 'btnRun2Delete')">
+                                <img id="imgRun2Preview" class="image-preview" alt="Run 2 Preview">
+                                <button type="button" id="btnRun2Delete" class="delete-btn" onclick="removeImage('imgRun2Preview', 'btnRun2Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><span id="liveStatusRun2" class="status-badge">-</span></td>
+                    </tr>
+                    <!-- Run 3 -->
+                    <tr>
+                        <td><strong>3</strong></td>
+                        <td class="goal-disp">-</td>
+                        <td><input type="number" class="master-input" step="0.01" oninput="calculateResults()"></td>
+                        <td>
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgMasterRun3Preview', 'btnMasterRun3Delete')">
+                                <img id="imgMasterRun3Preview" class="image-preview" alt="Master 3 Preview">
+                                <button type="button" id="btnMasterRun3Delete" class="delete-btn" onclick="removeImage('imgMasterRun3Preview', 'btnMasterRun3Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><input type="number" class="actual-input" step="0.01" oninput="calculateResults()"></td>
+                        <td>
+                            <div class="image-upload-box">
+                                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'imgRun3Preview', 'btnRun3Delete')">
+                                <img id="imgRun3Preview" class="image-preview" alt="Run 3 Preview">
+                                <button type="button" id="btnRun3Delete" class="delete-btn" onclick="removeImage('imgRun3Preview', 'btnRun3Delete')">Delete</button>
+                            </div>
+                        </td>
+                        <td><span id="liveStatusRun3" class="status-badge">-</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-action" onclick="switchTab('tab-report', event)">Switch to Preview Report & Print</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: PREVIEW VERIFICATION REPORT (GOOGLE SHEETS STYLE) -->
+    <div id="tab-report" class="tab-content">
+        <div class="no-print" style="margin-bottom: 12px; text-align: right;">
+            <button class="btn-action" onclick="window.print()">Print / Export PDF</button>
+        </div>
+
+        <!-- REPORT PAGE 1: GOOGLE SHEETS FORM VERIFICATION REPORT -->
+        <div class="report-paper">
+            <div>
+                <!-- HEADER WITH LOGO ON LEFT AND CENTERED TEXT -->
+                <div class="gs-header-box">
+                    <img src="https://raw.githubusercontent.com/mejironanase77/kg-equipment-verification-tool/main/KG-SOLAR%20LOGO.png" alt="KG Solar Logo" class="gs-header-logo">
+                    <div class="gs-header-titles">
+                        <h2>Measurement Verification Report</h2>
+                        <h3>รายงานผลการทวนสอบเครื่องมือวัดจากแหล่งสอบเทียบ</h3>
+                        <div class="gs-header-docno">Doc No: <span id="rptDocNo">KGC01-7101</span></div>
+                    </div>
+                </div>
+
+                <!-- Google Sheets Pattern Reference Table -->
+                <table class="gs-table">
+                    <tr>
+                        <td colspan="4" class="gs-bg-head">รายละเอียดเครื่องมือและระเบียบปฏิบัติ (Reference Equipment & Standard Specifications)</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 22%; font-weight: bold; background-color: #fafafa;">ระเบียบปฏิบัติ:</td>
+                        <td colspan="3"><a id="rptProcLink" class="report-link" target="_blank" href="#">-</a></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">ชื่อเครื่องมือทวนสอบ:</td>
+                        <td style="width: 28%;"><span id="rptToolName">Torque Wrench</span></td>
+                        <td style="width: 22%; font-weight: bold; background-color: #fafafa;">เครื่องมืออ้างอิง (Master ID):</td>
+                        <td style="width: 28%;"><span id="rptMasterId">MTE11-07</span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">ผู้ผลิตตัวทวนสอบ (Manufacturer):</td>
+                        <td><span id="rptTestedMfg">-</span></td>
+                        <td style="font-weight: bold; background-color: #fafafa;">ผู้ผลิตตัวแม่ (Manufacturer):</td>
+                        <td><span id="rptMasterMfg">ECLATORQ</span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">รุ่นตัวทวนสอบ (Model):</td>
+                        <td><span id="rptTestedModel">-</span></td>
+                        <td style="font-weight: bold; background-color: #fafafa;">รุ่นตัวแม่ (Model):</td>
+                        <td><span id="rptMasterModel">DA4-135CN</span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">หมายเลขเครื่อง (S/N):</td>
+                        <td><span id="rptTestedSerial">-</span></td>
+                        <td style="font-weight: bold; background-color: #fafafa;">S/N ตัวแม่ (Master Serial):</td>
+                        <td><span id="rptMasterSn">DG4-200-07006208</span></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">รหัสเครื่องมือ (ID):</td>
+                        <td><span id="rptTestedId">-</span></td>
+                        <td style="font-weight: bold; background-color: #fafafa;">Certificate No.:</td>
+                        <td><a id="rptCertLink" class="report-link" target="_blank" href="#">-</a></td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">ช่วงการใช้งาน (Range):</td>
+                        <td><span id="rptRange">6.8 to 135 N.m</span></td>
+                        <td style="font-weight: bold; background-color: #fafafa;">เกณฑ์การยอมรับ:</td>
+                        <td>±<span id="rptCriteria">4.0</span>%</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; background-color: #fafafa;">วันที่ทวนสอบ:</td>
+                        <td colspan="3" style="font-weight: bold; color: #e65100;"><span id="rptVerifyDate">-</span></td>
+                    </tr>
+                </table>
+
+                <!-- MAIN EQUIPMENT PHOTOS -->
+                <table class="gs-table" style="margin-bottom: 2mm;">
+                    <tr>
+                        <td colspan="2" class="gs-bg-head">รายละเอียดเครื่องมือหลัก (Main Equipment Photos)</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; text-align: center; padding: 1mm;">
+                            <div class="main-eq-img-box">
+                                <p style="margin: 0 0 1mm 0; font-weight: bold; font-size: 8.5pt;">ตัวแม่ (<span class="rpt-master-id-label">MTE11-07</span>)</p>
+                                <img id="rptImgMasterMain" alt="Master Image">
+                            </div>
+                        </td>
+                        <td style="width: 50%; text-align: center; padding: 1mm;">
+                            <div class="main-eq-img-box">
+                                <p style="margin: 0 0 1mm 0; font-weight: bold; font-size: 8.5pt;">ตัวที่ทวนสอบ (<span class="rpt-tested-id-label">-</span>)</p>
+                                <img id="rptImgTestedMain" alt="Tested Image">
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Verification Results Table -->
+                <table class="gs-table">
+                    <thead>
+                        <tr>
+                            <th colspan="9" class="gs-bg-head" style="background-color: #d9d9d9;">ผลการทวนสอบ (Verification Results)</th>
+                        </tr>
+                        <tr>
+                            <th>ครั้งที่</th>
+                            <th>ตัวแม่ (Master) N.m</th>
+                            <th>ตัวที่ทวนสอบ (Tested) N.m</th>
+                            <th>Correction (N.m)</th>
+                            <th>Error (N.m)</th>
+                            <th>Error (%)</th>
+                            <th>Uncertainty (±N.m)</th>
+                            <th>เกณฑ์ผ่าน</th>
+                            <th>สรุปผล</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rptTableBody">
+                        <tr><td style="text-align: center;">1</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">±4.00%</td><td style="text-align: center;">-</td></tr>
+                        <tr><td style="text-align: center;">2</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">±4.00%</td><td style="text-align: center;">-</td></tr>
+                        <tr><td style="text-align: center;">3</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">-</td><td style="text-align: center;">±4.00%</td><td style="text-align: center;">-</td></tr>
+                        <tr style="background-color: #fafafa; font-weight: bold;">
+                            <td style="text-align: center;">Average</td>
+                            <td id="avgMaster" style="text-align: center;">-</td>
+                            <td id="avgActual" style="text-align: center;">-</td>
+                            <td id="avgCorrection" style="text-align: center;">-</td>
+                            <td id="avgError" style="text-align: center;">-</td>
+                            <td id="avgErrPct" style="text-align: center;">-</td>
+                            <td id="avgUncertainty" style="text-align: center;">-</td>
+                            <td style="text-align: center;">±4.00%</td>
+                            <td id="overallResult" style="text-align: center;">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bottom Signatures -->
+            <div class="signature-grid">
+                <div>
+                    <div class="sig-line">ผู้ทวนสอบ (Inspector)</div>
+                    <p style="margin-top: 2pt;">วันที่ (Date): <span id="rptSigDateInspector">_________________</span></p>
+                </div>
+                <div>
+                    <div class="sig-line">ผู้ตรวจสอบ (Approver)</div>
+                    <p style="margin-top: 2pt;">วันที่ (Date): _________________</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORT PAGE 2: PHOTO ATTACHMENTS PAGE -->
+        <div class="report-paper">
+            <div>
+                <!-- HEADER WITH LOGO ON LEFT AND CENTERED TEXT PAGE 2 -->
+                <div class="gs-header-box">
+                    <img src="https://raw.githubusercontent.com/mejironanase77/kg-equipment-verification-tool/main/KG-SOLAR%20LOGO.png" alt="KG Solar Logo" class="gs-header-logo">
+                    <div class="gs-header-titles">
+                        <h2>Measurement Verification Report</h2>
+                        <h3>เอกสารแนบรูปภาพ (Photo Attachments)</h3>
+                        <div class="gs-header-docno">Doc No: <span class="rpt-doc-no-label">KGC01-7101</span></div>
+                    </div>
+                </div>
+
+                <table class="gs-table" style="margin-bottom: 2mm;">
+                    <tr>
+                        <td colspan="2" class="gs-bg-head">รายละเอียดเครื่องมือหลัก (Main Equipment)</td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; text-align: center; padding: 1mm;">
+                            <div class="main-eq-img-box">
+                                <p style="margin: 0 0 1mm 0; font-weight: bold; font-size: 8.5pt;">ตัวแม่ (<span class="rpt-master-id-label">MTE11-07</span>)</p>
+                                <img id="rptImgMasterMainPg2" alt="Master Image Pg2">
+                            </div>
+                        </td>
+                        <td style="width: 50%; text-align: center; padding: 1mm;">
+                            <div class="main-eq-img-box">
+                                <p style="margin: 0 0 1mm 0; font-weight: bold; font-size: 8.5pt;">ตัวที่ทวนสอบ (<span class="rpt-tested-id-label">-</span>)</p>
+                                <img id="rptImgTestedMainPg2" alt="Tested Image Pg2">
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="gs-bg-head" style="border: 1pt solid var(--gs-border); padding: 1.5mm; margin-bottom: 2mm;">ภาพบันทึกการทวนสอบ (Reading Step Photos)</div>
+                
+                <!-- Step Run 1 -->
+                <div class="step-row-card" id="cardStepRun1">
+                    <div class="step-card-header">
+                        <span>การทวนสอบครั้งที่ 1</span>
+                        <span>ตั้งค่าไว้: <strong><span id="rptGoalRun1">-</span> N.m</strong> | อ่านค่าได้: <strong><span id="rptValRun1">-</span> N.m</strong></span>
+                    </div>
+                    <div class="report-img-container-large">
+                        <div class="report-img-box-large" id="boxMasterRun1">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวแม่ (Master)</span>
+                            <img id="rptImgMasterRun1" alt="Master Run 1">
+                        </div>
+                        <div class="report-img-box-large" id="boxTestedRun1">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวทวนสอบ (Tested)</span>
+                            <img id="rptImgRun1" alt="Tested Run 1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Run 2 -->
+                <div class="step-row-card" id="cardStepRun2">
+                    <div class="step-card-header">
+                        <span>การทวนสอบครั้งที่ 2</span>
+                        <span>ตั้งค่าไว้: <strong><span id="rptGoalRun2">-</span> N.m</strong> | อ่านค่าได้: <strong><span id="rptValRun2">-</span> N.m</strong></span>
+                    </div>
+                    <div class="report-img-container-large">
+                        <div class="report-img-box-large" id="boxMasterRun2">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวแม่ (Master)</span>
+                            <img id="rptImgMasterRun2" alt="Master Run 2">
+                        </div>
+                        <div class="report-img-box-large" id="boxTestedRun2">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวทวนสอบ (Tested)</span>
+                            <img id="rptImgRun2" alt="Tested Run 2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Run 3 -->
+                <div class="step-row-card" id="cardStepRun3">
+                    <div class="step-card-header">
+                        <span>การทวนสอบครั้งที่ 3</span>
+                        <span>ตั้งค่าไว้: <strong><span id="rptGoalRun3">-</span> N.m</strong> | อ่านค่าได้: <strong><span id="rptValRun3">-</span> N.m</strong></span>
+                    </div>
+                    <div class="report-img-container-large">
+                        <div class="report-img-box-large" id="boxMasterRun3">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวแม่ (Master)</span>
+                            <img id="rptImgMasterRun3" alt="Master Run 3">
+                        </div>
+                        <div class="report-img-box-large" id="boxTestedRun3">
+                            <span style="font-size: 8pt; color: #555; margin-bottom: 1pt; font-weight: bold;">ภาพอ่านค่าตัวทวนสอบ (Tested)</span>
+                            <img id="rptImgRun3" alt="Tested Run 3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: EDIT CORRECTION & UNCERTAINTY DATA WITH CERTIFICATE PRESETS -->
+    <div id="tab-edit-corr" class="tab-content no-print">
+        <h1>Master Calibration Reference Table</h1>
+        <p>Select or create calibration presets by <strong>Certificate Number</strong>. Correction is calculated as ($\text{Correction} = \text{Averaged Standard Reading} - \text{Setting}$).</p>
+        
+        <div class="ref-info-box" style="margin-bottom: 15px;">
+            <div class="grid-2" style="align-items: center;">
+                <div>
+                    <label>Active Calibration Certificate Preset (เลือกชุดเลขเซอร์):</label>
+                    <select id="certPresetSelect" onchange="onCertPresetChange()">
+                        <!-- Dynamically populated -->
+                    </select>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn-action" style="background-color: #2e7d32; font-size: 0.85rem;" onclick="saveNewCertPreset()">+ Save Current Data as New Certificate Preset</button>
+                </div>
+            </div>
+        </div>
+
+        <table id="correctionTable" class="input-table">
+            <thead>
+                <tr>
+                    <th>Torque Setting (N.m)</th>
+                    <th>Averaged Master Reading (N.m)</th>
+                    <th>Auto Calculated Correction (N.m)</th>
+                    <th>Uncertainty U (±N.m)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="corrTableBody">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button class="btn-action" style="background-color: #2e7d32;" onclick="addCorrectionRow()">+ Add New Point</button>
+            <button class="btn-action" style="background-color: #0288d1;" onclick="resetDefaultCorr()">Reset Preset Defaults</button>
+        </div>
+    </div>
+
+    <!-- TAB 4: EDIT REFERENCE STANDARDS & LINKS TAB -->
+    <div id="tab-edit-ref" class="tab-content no-print">
+        <h1>Reference Standards & Master Equipment Specs</h1>
+        <p>Configure master tool details, manufacturer specs, procedure references, document numbers, and hyperlinks here. Changes automatically mirror onto the preview report.</p>
+
+        <div class="section-header">1. Master Equipment Technical Specifications</div>
+        <div class="grid-4">
+            <div class="form-group">
+                <label>Master Tool ID (ตัวแม่)</label>
+                <input type="text" id="masterId" value="MTE11-07" oninput="calculateResults()">
+            </div>
+            <div class="form-group">
+                <label>Master Manufacturer (ผู้ผลิตตัวแม่)</label>
+                <input type="text" id="masterMfg" value="ECLATORQ" oninput="calculateResults()">
+            </div>
+            <div class="form-group">
+                <label>Master Model (รุ่นตัวแม่)</label>
+                <input type="text" id="masterModel" value="DA4-135CN" oninput="calculateResults()">
+            </div>
+            <div class="form-group">
+                <label>Master Serial No. (S/N ตัวแม่)</label>
+                <input type="text" id="masterSn" value="DG4-200-07006208" oninput="calculateResults()">
+            </div>
+        </div>
+
+        <div class="section-header">2. System Control & Document Info</div>
+        <div class="grid-2">
+            <div>
+                <div class="form-group">
+                    <label>Document Number (เลขที่เอกสาร)</label>
+                    <input type="text" id="docNo" value="KGC01-7101" oninput="calculateResults()">
+                </div>
+                <div class="form-group">
+                    <label>Tool Name</label>
+                    <input type="text" id="toolName" value="Torque Wrench" oninput="calculateResults()">
+                </div>
+                <div class="form-group">
+                    <label>Range (N.m)</label>
+                    <input type="text" id="range" value="6.8 to 135" oninput="calculateResults()">
+                </div>
+                <div class="form-group">
+                    <label>Certificate Number (เลขเซอร์)</label>
+                    <input type="text" id="certNum" value="5523631035728312" oninput="onCertNumInput()">
+                </div>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label>ระเบียบปฏิบัติ (Procedure Reference Text)</label>
+                    <input type="text" id="procRef" value="KG2-7.1-02 การควบคุมเครื่องมือตรวจ เครื่องมือวัด และเครื่องมือทดสอบ" oninput="calculateResults()">
+                </div>
+                <div class="form-group">
+                    <label>Procedure Reference URL / Link</label>
+                    <input type="url" id="procUrl" value="https://docs.google.com/document/d/1b71V36dKPdgZqLyJ9dsGDLOLSi16HBb0u9GXHiIjNXk" oninput="calculateResults()">
+                </div>
+                <div class="form-group">
+                    <label>Certificate Document URL / Link</label>
+                    <input type="url" id="certUrl" value="https://drive.google.com/file/d/1qHoyl6fTIA24mcx7zuHu41MsGys_cMrC/view" oninput="calculateResults()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Certificate calibration database dictionary presets
+    let certificateDatabase = {
+        "5523631035728312": [
+            { setting: 6.8, avgStandard: 6.7, uncertainty: 0.11 },
+            { setting: 25.0, avgStandard: 24.8, uncertainty: 0.17 },
+            { setting: 50.0, avgStandard: 50.2, uncertainty: 0.34 },
+            { setting: 75.0, avgStandard: 75.2, uncertainty: 0.51 },
+            { setting: 100.0, avgStandard: 100.6, uncertainty: 0.67 },
+            { setting: 125.0, avgStandard: 126.2, uncertainty: 0.83 },
+            { setting: 135.0, avgStandard: 136.7, uncertainty: 0.90 }
+        ]
+    };
+
+    let activeCertNum = "5523631035728312";
+    let masterCalibrationData = JSON.parse(JSON.stringify(certificateDatabase[activeCertNum]));
+
+    document.getElementById('verifyDate').valueAsDate = new Date();
+
+    function formatDateDDMMYYYY(dateString) {
+        if (!dateString) return '-';
+        const parts = dateString.split('-');
+        if (parts.length !== 3) return dateString;
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function switchTab(tabId, evt) {
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        let targetBtn = evt ? evt.target : document.querySelector(`button[onclick*="${tabId}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function renderCertPresetSelect() {
+        const sel = document.getElementById('certPresetSelect');
+        sel.innerHTML = '';
+        Object.keys(certificateDatabase).forEach(certKey => {
+            const opt = document.createElement('option');
+            opt.value = certKey;
+            opt.innerText = `Cert No: ${certKey}`;
+            if (certKey === activeCertNum) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    function onCertPresetChange() {
+        const selVal = document.getElementById('certPresetSelect').value;
+        if (certificateDatabase[selVal]) {
+            activeCertNum = selVal;
+            document.getElementById('certNum').value = selVal;
+            masterCalibrationData = JSON.parse(JSON.stringify(certificateDatabase[selVal]));
+            renderCorrTable();
+            onGoalChange();
+        }
+    }
+
+    function onCertNumInput() {
+        const inputVal = document.getElementById('certNum').value.trim();
+        if (inputVal && certificateDatabase[inputVal]) {
+            activeCertNum = inputVal;
+            masterCalibrationData = JSON.parse(JSON.stringify(certificateDatabase[inputVal]));
+            renderCertPresetSelect();
+            renderCorrTable();
+        }
+        calculateResults();
+    }
+
+    function saveNewCertPreset() {
+        const currentCertInput = document.getElementById('certNum').value.trim();
+        if (!currentCertInput) {
+            alert('Please enter a valid Certificate Number in the Edit Reference tab first.');
+            return;
+        }
+        certificateDatabase[currentCertInput] = JSON.parse(JSON.stringify(masterCalibrationData));
+        activeCertNum = currentCertInput;
+        renderCertPresetSelect();
+        alert(`Saved new calibration curve preset for Certificate No: ${currentCertInput}`);
+    }
+
+    function renderCorrTable() {
+        const tbody = document.getElementById('corrTableBody');
+        tbody.innerHTML = '';
+        masterCalibrationData.forEach((pt, index) => {
+            const corr = pt.avgStandard - pt.setting;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="number" step="0.1" value="${pt.setting}" onchange="updateCorrPoint(${index}, 'setting', this.value)"></td>
+                <td><input type="number" step="0.01" value="${pt.avgStandard}" onchange="updateCorrPoint(${index}, 'avgStandard', this.value)"></td>
+                <td style="font-weight: bold; background-color: #f5f5f5;">${corr >= 0 ? '+' : ''}${corr.toFixed(2)}</td>
+                <td><input type="number" step="0.01" value="${pt.uncertainty}" onchange="updateCorrPoint(${index}, 'uncertainty', this.value)"></td>
+                <td><button class="delete-btn" style="display:inline-block;" onclick="deleteCorrRow(${index})">Delete</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateCorrPoint(index, field, value) {
+        masterCalibrationData[index][field] = parseFloat(value) || 0;
+        masterCalibrationData.sort((a, b) => a.setting - b.setting);
+        
+        // Auto update active preset in DB
+        certificateDatabase[activeCertNum] = JSON.parse(JSON.stringify(masterCalibrationData));
+        
+        renderCorrTable();
+        onGoalChange();
+    }
+
+    function addCorrectionRow() {
+        masterCalibrationData.push({ setting: 0, avgStandard: 0, uncertainty: 0 });
+        renderCorrTable();
+    }
+
+    function deleteCorrRow(index) {
+        masterCalibrationData.splice(index, 1);
+        renderCorrTable();
+        onGoalChange();
+    }
+
+    function resetDefaultCorr() {
+        if (certificateDatabase[activeCertNum]) {
+            masterCalibrationData = JSON.parse(JSON.stringify(certificateDatabase[activeCertNum]));
+        } else {
+            masterCalibrationData = [
+                { setting: 6.8, avgStandard: 6.7, uncertainty: 0.11 },
+                { setting: 25.0, avgStandard: 24.8, uncertainty: 0.17 },
+                { setting: 50.0, avgStandard: 50.2, uncertainty: 0.34 },
+                { setting: 75.0, avgStandard: 75.2, uncertainty: 0.51 },
+                { setting: 100.0, avgStandard: 100.6, uncertainty: 0.67 },
+                { setting: 125.0, avgStandard: 126.2, uncertainty: 0.83 },
+                { setting: 135.0, avgStandard: 136.7, uncertainty: 0.90 }
+            ];
+        }
+        renderCorrTable();
+        onGoalChange();
+    }
+
+    function getInterpolatedData(goal) {
+        if (masterCalibrationData.length === 0) return { correction: 0, uncertainty: 0 };
+        
+        const calcData = masterCalibrationData.map(d => ({
+            setting: d.setting,
+            correction: d.avgStandard - d.setting,
+            uncertainty: d.uncertainty
+        }));
+
+        if (goal <= calcData[0].setting) {
+            return { correction: calcData[0].correction, uncertainty: calcData[0].uncertainty };
+        }
+        if (goal >= calcData[calcData.length - 1].setting) {
+            const last = calcData[calcData.length - 1];
+            return { correction: last.correction, uncertainty: last.uncertainty };
+        }
+
+        for (let i = 0; i < calcData.length - 1; i++) {
+            const p1 = calcData[i];
+            const p2 = calcData[i + 1];
+            if (goal >= p1.setting && goal <= p2.setting) {
+                const ratio = (goal - p1.setting) / (p2.setting - p1.setting);
+                const corr = p1.correction + ratio * (p2.correction - p1.correction);
+                const unc = p1.uncertainty + ratio * (p2.uncertainty - p1.uncertainty);
+                return { correction: corr, uncertainty: unc };
+            }
+        }
+        return { correction: 0, uncertainty: 0 };
+    }
+
+    function onPresetSelect() {
+        const val = document.getElementById('settingSelect').value;
+        if (val !== "") {
+            document.getElementById('goalValue').value = val;
+            onGoalChange();
+        }
+    }
+
+    function onGoalChange() {
+        const goal = parseFloat(document.getElementById('goalValue').value);
+        const goalDisplays = document.querySelectorAll('.goal-disp');
+        const masterInputs = document.querySelectorAll('.master-input');
+
+        if (isNaN(goal)) {
+            goalDisplays.forEach(el => el.innerText = '-');
+            document.getElementById('appliedCorrDisp').value = '0.00';
+            calculateResults();
+            return;
+        }
+
+        const calData = getInterpolatedData(goal);
+        document.getElementById('appliedCorrDisp').value = (calData.correction >= 0 ? '+' : '') + calData.correction.toFixed(2);
+
+        const calculatedMasterValue = goal + calData.correction;
+
+        goalDisplays.forEach(el => el.innerText = goal.toFixed(1));
+        masterInputs.forEach(input => input.value = calculatedMasterValue.toFixed(2));
+
+        calculateResults();
+    }
+
+    function handleImageUpload(event, previewId, deleteBtnId) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgEle = document.getElementById(previewId);
+                imgEle.src = e.target.result;
+                imgEle.style.display = 'block';
+                document.getElementById(deleteBtnId).style.display = 'inline-block';
+                syncReportImages(previewId, e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeImage(previewId, deleteBtnId) {
+        const imgEle = document.getElementById(previewId);
+        imgEle.src = '';
+        imgEle.style.display = 'none';
+        document.getElementById(deleteBtnId).style.display = 'none';
+        
+        const parent = imgEle.parentElement;
+        const input = parent.querySelector('input[type="file"]');
+        if (input) input.value = '';
+
+        syncReportImages(previewId, '');
+    }
+
+    function syncReportImages(previewId, dataUrl) {
+        const map = {
+            'imgMasterMainPreview': ['rptImgMasterMain', 'rptImgMasterMainPg2'],
+            'imgTestedMainPreview': ['rptImgTestedMain', 'rptImgTestedMainPg2'],
+            'imgMasterRun1Preview': ['rptImgMasterRun1'],
+            'imgRun1Preview': ['rptImgRun1'],
+            'imgMasterRun2Preview': ['rptImgMasterRun2'],
+            'imgRun2Preview': ['rptImgRun2'],
+            'imgMasterRun3Preview': ['rptImgMasterRun3'],
+            'imgRun3Preview': ['rptImgRun3']
+        };
+        
+        if (map[previewId]) {
+            map[previewId].forEach(rptId => {
+                const rptImg = document.getElementById(rptId);
+                if (rptImg) {
+                    rptImg.src = dataUrl;
+                    rptImg.style.display = dataUrl ? 'block' : 'none';
+                }
+            });
+            
+            const boxMap = {
+                'rptImgMasterRun1': 'boxMasterRun1',
+                'rptImgRun1': 'boxTestedRun1',
+                'rptImgMasterRun2': 'boxMasterRun2',
+                'rptImgRun2': 'boxTestedRun2',
+                'rptImgMasterRun3': 'boxMasterRun3',
+                'rptImgRun3': 'boxTestedRun3'
+            };
+            map[previewId].forEach(rptId => {
+                if (boxMap[rptId]) {
+                    const box = document.getElementById(boxMap[rptId]);
+                    if (box) box.style.display = dataUrl ? 'flex' : 'none';
+                }
+            });
+        }
+    }
+
+    function calculateResults() {
+        const testedId = document.getElementById('testedId').value || '-';
+        const testedSerial = document.getElementById('testedSerial').value || '-';
+        const testedMfg = document.getElementById('testedMfg').value || '-';
+        const testedModel = document.getElementById('testedModel').value || '-';
+        
+        const docNoVal = document.getElementById('docNo').value || 'KGC01-7101';
+        const masterId = document.getElementById('masterId').value || '-';
+        const masterMfg = document.getElementById('masterMfg').value || '-';
+        const masterModel = document.getElementById('masterModel').value || '-';
+        const masterSn = document.getElementById('masterSn').value || '-';
+        
+        const criteria = parseFloat(document.getElementById('criteria').value) || 4.0;
+        const goal = parseFloat(document.getElementById('goalValue').value);
+        const rawDateVal = document.getElementById('verifyDate').value;
+        const formattedDateVal = formatDateDDMMYYYY(rawDateVal);
+
+        const certNumVal = document.getElementById('certNum').value || '-';
+        const certUrlVal = document.getElementById('certUrl').value || '#';
+        const procRefVal = document.getElementById('procRef').value || '-';
+        const procUrlVal = document.getElementById('procUrl').value || '#';
+
+        const calData = isNaN(goal) ? { correction: 0, uncertainty: 0 } : getInterpolatedData(goal);
+
+        document.getElementById('rptDocNo').innerText = docNoVal;
+        document.querySelectorAll('.rpt-doc-no-label').forEach(e => e.innerText = docNoVal);
+
+        document.getElementById('rptToolName').innerText = document.getElementById('toolName').value;
+        document.getElementById('rptTestedId').innerText = testedId;
+        document.getElementById('rptTestedSerial').innerText = testedSerial;
+        document.getElementById('rptTestedMfg').innerText = testedMfg;
+        document.getElementById('rptTestedModel').innerText = testedModel;
+
+        document.getElementById('rptMasterId').innerText = masterId;
+        document.getElementById('rptMasterMfg').innerText = masterMfg;
+        document.getElementById('rptMasterModel').innerText = masterModel;
+        document.getElementById('rptMasterSn').innerText = masterSn;
+        
+        document.getElementById('rptRange').innerText = document.getElementById('range').value + ' N.m';
+        document.getElementById('rptCriteria').innerText = criteria.toFixed(1);
+        document.getElementById('rptVerifyDate').innerText = formattedDateVal;
+
+        // Procedure Link Dynamic Update
+        const procLink = document.getElementById('rptProcLink');
+        procLink.innerText = procRefVal;
+        procLink.href = procUrlVal && procUrlVal !== '#' ? procUrlVal : 'javascript:void(0);';
+
+        // Certificate Link Dynamic Update
+        const certLink = document.getElementById('rptCertLink');
+        certLink.innerText = certNumVal;
+        certLink.href = certUrlVal && certUrlVal !== '#' ? certUrlVal : 'javascript:void(0);';
+        
+        // Auto-fill Inspector date in DD/MM/YYYY format
+        document.getElementById('rptSigDateInspector').innerText = formattedDateVal !== '-' ? formattedDateVal : '_________________';
+
+        document.querySelectorAll('.rpt-master-id-label').forEach(e => e.innerText = masterId);
+        
+        let labelTestedText = testedId;
+        if (testedSerial !== '-') {
+            labelTestedText += (testedId !== '-' ? ` / ${testedSerial}` : testedSerial);
+        }
+        document.querySelectorAll('.rpt-tested-id-label').forEach(e => e.innerText = labelTestedText);
+
+        const masterInputs = document.querySelectorAll('.master-input');
+        const actualInputs = document.querySelectorAll('.actual-input');
+        const tableBody = document.getElementById('rptTableBody');
+
+        let sumMaster = 0, sumActual = 0, validCount = 0;
+        let allPassed = true;
+
+        for (let i = 0; i < 3; i++) {
+            const masterVal = parseFloat(masterInputs[i].value);
+            const actualVal = parseFloat(actualInputs[i].value);
+            const rptValRun = document.getElementById(`rptValRun${i+1}`);
+            const rptGoalRun = document.getElementById(`rptGoalRun${i+1}`);
+            const liveBadge = document.getElementById(`liveStatusRun${i+1}`);
+            const row = tableBody.rows[i];
+
+            rptGoalRun.innerText = isNaN(goal) ? '-' : goal.toFixed(1);
+
+            if (!isNaN(masterVal) && !isNaN(actualVal)) {
+                const error = actualVal - masterVal;
+                const errPct = (Math.abs(error) / masterVal) * 100;
+                const isPass = errPct <= criteria;
+
+                if (!isPass) allPassed = false;
+
+                sumMaster += masterVal;
+                sumActual += actualVal;
+                validCount++;
+
+                // Update Report Table
+                row.cells[1].innerText = masterVal.toFixed(2);
+                row.cells[2].innerText = actualVal.toFixed(2);
+                row.cells[3].innerText = (calData.correction >= 0 ? '+' : '') + calData.correction.toFixed(2);
+                row.cells[4].innerText = (error > 0 ? '+' : '') + error.toFixed(2);
+                row.cells[5].innerText = errPct.toFixed(2) + '%';
+                row.cells[6].innerText = `±${calData.uncertainty.toFixed(2)}`;
+                row.cells[7].innerText = `±${criteria.toFixed(2)}%`;
+                row.cells[8].innerText = isPass ? 'PASS' : 'FAIL';
+                row.cells[8].className = isPass ? 'status-pass' : 'status-fail';
+
+                // Update Live Badge
+                liveBadge.innerText = isPass ? 'PASS' : 'FAIL';
+                liveBadge.className = `status-badge ${isPass ? 'status-pass' : 'status-fail'}`;
+
+                rptValRun.innerText = actualVal.toFixed(2);
+            } else {
+                row.cells[1].innerText = '-';
+                row.cells[2].innerText = '-';
+                row.cells[3].innerText = '-';
+                row.cells[4].innerText = '-';
+                row.cells[5].innerText = '-';
+                row.cells[6].innerText = '-';
+                row.cells[7].innerText = `±${criteria.toFixed(2)}%`;
+                row.cells[8].innerText = '-';
+                row.cells[8].className = '';
+
+                liveBadge.innerText = '-';
+                liveBadge.className = 'status-badge';
+                rptValRun.innerText = '-';
+            }
+        }
+
+        const overallBadge = document.getElementById('liveOverallStatus');
+        if (validCount > 0) {
+            const avgM = sumMaster / validCount;
+            const avgA = sumActual / validCount;
+            const avgErr = avgA - avgM;
+            const avgErrPct = (Math.abs(avgErr) / avgM) * 100;
+
+            document.getElementById('avgMaster').innerText = avgM.toFixed(2);
+            document.getElementById('avgActual').innerText = avgA.toFixed(2);
+            document.getElementById('avgCorrection').innerText = (calData.correction >= 0 ? '+' : '') + calData.correction.toFixed(2);
+            document.getElementById('avgError').innerText = (avgErr > 0 ? '+' : '') + avgErr.toFixed(2);
+            document.getElementById('avgErrPct').innerText = avgErrPct.toFixed(2) + '%';
+            document.getElementById('avgUncertainty').innerText = `±${calData.uncertainty.toFixed(2)}`;
+            
+            const overallEle = document.getElementById('overallResult');
+            overallEle.innerText = allPassed ? 'PASS' : 'FAIL';
+            overallEle.className = allPassed ? 'status-pass' : 'status-fail';
+
+            overallBadge.innerText = allPassed ? 'PASS' : 'FAIL';
+            overallBadge.className = `status-badge ${allPassed ? 'status-pass' : 'status-fail'}`;
+        } else {
+            document.getElementById('avgMaster').innerText = '-';
+            document.getElementById('avgActual').innerText = '-';
+            document.getElementById('avgCorrection').innerText = '-';
+            document.getElementById('avgError').innerText = '-';
+            document.getElementById('avgErrPct').innerText = '-';
+            document.getElementById('avgUncertainty').innerText = '-';
+            document.getElementById('overallResult').innerText = '-';
+            document.getElementById('overallResult').className = '';
+
+            overallBadge.innerText = '-';
+            overallBadge.className = 'status-badge';
+        }
+    }
+
+    // Hide image box containers initially on page load
+    ['boxMasterRun1', 'boxTestedRun1', 'boxMasterRun2', 'boxTestedRun2', 'boxMasterRun3', 'boxTestedRun3'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
+
+    renderCertPresetSelect();
+    renderCorrTable();
+    calculateResults();
+</script>
+
+</body>
+</html>
